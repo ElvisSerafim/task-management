@@ -1,7 +1,9 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { SessionGuard } from '../auth/session.guard.js';
 import { ProjectService } from './project.service';
 import { Project } from './project.entity';
 
+@UseGuards(SessionGuard)
 @Controller('project')
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
