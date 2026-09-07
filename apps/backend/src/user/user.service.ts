@@ -10,12 +10,6 @@ export class UserService {
     private userRepository: Repository<User>,
   ) {}
 
-  findAll(): Promise<User[]> {
-    return this.userRepository.find({
-      select: { id: true, username: true, createdAt: true, updatedAt: true },
-    });
-  }
-
   findByUsername(username: string): Promise<User | null> {
     return this.userRepository.findOne({ where: { username } });
   }

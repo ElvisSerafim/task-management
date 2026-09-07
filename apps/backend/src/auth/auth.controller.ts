@@ -1,13 +1,6 @@
-import {
-  Body,
-  Controller,
-  HttpCode,
-  Post,
-  Req,
-} from '@nestjs/common';
-import type { Request } from 'express';
-import { AuthService } from './auth.service.js';
-import { AuthCredentialsDto } from './auth.dto.js';
+import { Body, Controller, HttpCode, Post } from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { AuthCredentialsDto } from './auth.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -20,21 +13,7 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(200)
-  async login(@Body() dto: AuthCredentialsDto, @Req() req: Request) {
-    const user = await this.authService.login(dto);
-    req.session.userId = user.id;
-    return user;
-  }
-
-  @Post('logout')
-  @HttpCode(204)
-  logout(@Req() req: Request) {
-    return new Promise<void>((resolve, reject) => {
-      if (!req.session) {
-        resolve();
-        return;
-      }
-      req.session.destroy((err) => (err ? reject(err) : resolve()));
-    });
+  login(@Body() dto: AuthCredentialsDto) {
+    return this.authService.login(dto);
   }
 }

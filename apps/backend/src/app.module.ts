@@ -1,33 +1,30 @@
 import { Module } from '@nestjs/common';
-import { createObserveModule } from '@nestjs/observe';
-import { AppController } from './app.controller.js';
-import { AppService } from './app.service.js';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserModule } from './user/user.module.js';
-import { ProjectModule } from './project/project.module.js';
-import { TaskModule } from './task/task.module.js';
-import { AuthModule } from './auth/auth.module.js';
-
-export const { ObserveModule, ObserveInstrument } = createObserveModule();
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { UserModule } from './user/user.module';
+import { ProjectModule } from './project/project.module';
+import { TaskModule } from './task/task.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
-    // Distributed tracing, auto-correlated logs, request/job metrics, error
-    // telemetry, alarms, and more — out of the box. Sign up at https://observe.nestjs.com
-    ObserveModule.forRoot({
-      appKey: 'YOUR_APP_KEY',
-      appSecret: 'YOUR_APP_SECRET',
-      serviceId: 'backend',
+    ConfigModule.forRoot({
+      isGlobal: true,
     }),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'postgres',
-      port: 5432,
-      username: 'taskmgmt',
-      password: 'taskmgmt',
-      database: 'taskmgmt',
-      autoLoadEntities: true,
-      synchronize: true,
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        type: 'postgres',
+        host: config.get<string>('DB_HOST', 'postgres'),
+        port: config.get<number>('DB_PORT', 5432),
+        username: config.get<string>('DB_USER', 'taskmgmt'),
+        password: config.get<string>('DB_PASSWORD', 'taskmgmt'),
+        database: config.get<string>('DB_NAME', 'taskmgmt'),
+        autoLoadEntities: true,
+        synchronize: config.get<string>('NODE_ENV') !== 'production',
+      }),
     }),
     UserModule,
     ProjectModule,

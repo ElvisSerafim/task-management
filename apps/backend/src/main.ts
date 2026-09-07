@@ -1,22 +1,21 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
-import session from 'express-session';
-import { AppModule, ObserveInstrument } from './app.module.js';
+import { Logger, ValidationPipe } from '@nestjs/common';
+import { AppModule } from './app.module';
+import { AllExceptionsFilter } from './common/filters/http-exception.filter';
+import type { NextFunction, Request, Response } from 'express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
-    instrument: ObserveInstrument,
+  const app = await NestFactory.create(AppModule);
+  app.enableCors({ origin: true });
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+  app.useGlobalFilters(new AllExceptionsFilter());
+  const httpLog = new Logger('HTTP');
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    res.on('finish', () => {
+      httpLog.log(`${req.method} ${req.path} ${res.statusCode}`);
+    });
+    next();
   });
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
-  app.use(
-    session({
-      // ponytail: MemoryStore — lost on restart / won't share across replicas; use Redis if we scale
-      secret: process.env.SESSION_SECRET ?? 'dev-only-session-secret',
-      resave: false,
-      saveUninitialized: false,
-      cookie: { httpOnly: true },
-    }),
-  );
   await app.listen(process.env.PORT ?? 3000);
 }
-await bootstrap();
+bootstrap();
