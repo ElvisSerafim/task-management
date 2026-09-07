@@ -12,7 +12,7 @@ export class Task {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: true })
+  @Column()
   description: string;
 
   @Column({ type: 'timestamp', nullable: true })
@@ -20,6 +20,9 @@ export class Task {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @Column({ type: 'date', nullable: true })
+  dueDate: Date | null;
 
   @ManyToOne(() => Project, (project) => project.tasks, {
     onDelete: 'CASCADE',
